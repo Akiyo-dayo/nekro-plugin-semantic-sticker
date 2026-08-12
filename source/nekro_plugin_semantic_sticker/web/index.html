@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>语义表情包控制台</title>
+  <style>/*__INLINE_STYLE__*/</style>
+</head>
+<body>
+  <a class="skip-link" href="#sticker-grid">跳到表情包列表</a>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">语义表情包库</p>
+      <h1>语义表情包控制台</h1>
+      <p class="subtitle">网页上传、Agent 按需保存、模型标注、人工校正与场景检索。</p>
+    </div>
+    <div class="topbar-status" aria-label="系统状态">
+      <span class="signal-dot" aria-hidden="true"></span>
+      <span>实例全局库</span>
+      <span class="divider" aria-hidden="true"></span>
+      <span>仅超级管理员</span>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="workspace" aria-label="表情包管理工作区">
+      <section class="stats-strip" aria-label="库统计">
+        <article class="stat-card">
+          <span>总记录</span><strong id="stats-total">—</strong><small>未删除记录</small>
+        </article>
+        <article class="stat-card">
+          <span>已索引</span><strong id="stats-indexed">—</strong><small>可用且安全</small>
+        </article>
+        <article class="stat-card">
+          <span>存储占用</span><strong id="stats-storage">—</strong><small>原图与缩略图</small>
+        </article>
+        <article class="stat-card danger-stat">
+          <span>失败 / 待重试</span><strong id="stats-failures">—</strong><small>需要管理员关注</small>
+        </article>
+      </section>
+
+      <section class="upload-panel" aria-labelledby="upload-title">
+        <div class="section-heading">
+          <div><p class="section-kicker">上传管理</p><h2 id="upload-title">上传并自动分析</h2></div>
+          <p>支持 PNG、JPEG、GIF、WebP。上传立即入队，视觉模型在后台生成分类与标签。单次请求上传总量默认不超过 10MB，超限请分批上传。</p>
+        </div>
+        <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-describedby="upload-help">
+          <div class="drop-mark" aria-hidden="true">＋</div>
+          <div><strong>拖放表情包到这里</strong><span id="upload-help">或选择多个文件批量上传</span></div>
+          <input id="file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple>
+          <label class="button primary file-input-label" for="file-input">选择文件</label>
+        </div>
+        <div id="upload-queue" class="upload-queue" aria-live="polite" aria-label="上传队列"></div>
+      </section>
+
+      <section class="library-panel" aria-labelledby="library-title">
+        <div class="section-heading compact-heading">
+          <div><p class="section-kicker">表情包管理</p><h2 id="library-title">实例全局表情包库</h2></div>
+          <div class="library-actions">
+            <span id="selection-count" class="selection-count">已选择 0 项</span>
+            <button id="batch-delete" class="button danger ghost" type="button" disabled>批量删除</button>
+            <button id="full-reindex" class="button secondary" type="button">全量重建向量</button>
+          </div>
+        </div>
+
+        <form id="filter-form" class="filter-bar" aria-label="筛选表情包">
+          <label class="field search-field"><span>搜索</span><input id="filter-query" type="search" placeholder="描述、OCR 或场景" aria-label="搜索描述、OCR 或场景"></label>
+          <label class="field"><span>分类</span><select id="filter-category" aria-label="按分类筛选"><option value="">全部分类</option></select></label>
+          <label class="field"><span>标签</span><input id="filter-tags" type="text" placeholder="逗号分隔" aria-label="按标签筛选"></label>
+          <label class="field"><span>状态</span><select id="filter-state" aria-label="按状态筛选"><option value="">全部状态</option><option value="pending">等待处理</option><option value="analyzing">正在分析</option><option value="indexing">正在建立向量</option><option value="active">可用</option><option value="failed">处理失败</option><option value="retry_pending">等待重试</option><option value="deleting">正在删除</option><option value="deleted">已删除</option></select></label>
+          <label class="field"><span>时间</span><select id="filter-time" aria-label="按上传时间筛选"><option value="">全部时间</option><option value="day">24 小时内</option><option value="week">7 天内</option><option value="month">30 天内</option></select></label>
+          <button class="button secondary filter-submit" type="submit">应用筛选</button>
+        </form>
+
+        <div id="status-region" class="status-region" role="status" aria-live="polite">正在连接表情包库…</div>
+        <div id="sticker-grid" class="sticker-grid" aria-label="表情包列表" aria-busy="true"></div>
+        <div class="pagination-bar">
+          <button id="previous-page" class="button ghost" type="button" disabled>上一页</button>
+          <span id="page-summary">第 1 页</span>
+          <button id="next-page" class="button ghost" type="button" disabled>下一页</button>
+        </div>
+      </section>
+    </section>
+
+    <aside id="metadata-panel" class="metadata-panel" role="dialog" aria-modal="false" aria-labelledby="metadata-title" tabindex="-1">
+      <div class="panel-empty" id="metadata-empty">
+        <span class="empty-glyph" aria-hidden="true">⌁</span>
+        <h2>表情包详情</h2>
+        <p>选择一张表情包，查看模型生成的语义信息并留下可审计的修订原因。</p>
+      </div>
+      <form id="metadata-form" class="metadata-form" hidden>
+        <div class="metadata-header">
+          <div><p class="section-kicker">详情与校正</p><h2 id="metadata-title">表情包详情</h2></div>
+          <button id="close-metadata" class="icon-button" type="button" aria-label="关闭表情包详情面板">×</button>
+        </div>
+        <figure class="metadata-preview"><img id="metadata-image" alt="所选表情包预览"></figure>
+        <div class="readonly-grid">
+          <label class="field"><span>状态</span><input id="metadata-state" type="text" readonly></label>
+          <label class="field"><span>安全</span><input id="metadata-safety" type="text" readonly></label>
+        </div>
+        <label class="field"><span>描述</span><textarea id="metadata-description" rows="3"></textarea></label>
+        <label class="field"><span>主分类</span><select id="metadata-category"></select></label>
+        <label class="field"><span>情绪标签</span><input id="metadata-emotion-tags" type="text" placeholder="逗号分隔"></label>
+        <label class="field"><span>场景标签</span><input id="metadata-scene-tags" type="text" placeholder="逗号分隔"></label>
+        <label class="field"><span>OCR 文本</span><textarea id="metadata-ocr" rows="2"></textarea></label>
+        <label class="field"><span>适用场景</span><textarea id="metadata-suitable" rows="3" placeholder="每行一项"></textarea></label>
+        <label class="field"><span>不适用场景</span><textarea id="metadata-unsuitable" rows="3" placeholder="每行一项"></textarea></label>
+        <label class="field reason-field"><span>修订原因 <b aria-hidden="true">*</b></span><input id="metadata-reason" type="text" required aria-describedby="reason-help"><small id="reason-help">将与认证管理员用户名一起写入修订记录。</small></label>
+        <div class="panel-actions">
+          <button id="save-metadata" class="button primary" type="submit">保存元数据</button>
+          <button id="reanalyze-sticker" class="button secondary" type="button">重新模型分析</button>
+          <button id="reindex-sticker" class="button secondary" type="button">仅重建向量</button>
+          <button id="delete-sticker" class="button danger ghost" type="button">删除表情包</button>
+        </div>
+      </form>
+    </aside>
+  </main>
+
+  <script>/*__INLINE_SCRIPT__*/</script>
+</body>
+</html>
