@@ -170,6 +170,18 @@ def router_harness(tmp_path: Path, web_root: Path, monkeypatch):
     return app, router, service, get_current_super_user
 
 
+def declared_api_routes(router) -> list[APIRoute]:
+    routes: list[APIRoute] = []
+    for route in router.routes:
+        if isinstance(route, APIRoute):
+            routes.append(route)
+            continue
+        included_router = getattr(route, "original_router", None)
+        if included_router is not None:
+            routes.extend(declared_api_routes(included_router))
+    return routes
+
+
 def dependency_calls(route: APIRoute) -> set[object]:
     found: set[object] = set()
     stack = list(route.dependant.dependencies)
@@ -180,30 +192,34 @@ def dependency_calls(route: APIRoute) -> set[object]:
     return found
 
 
-def test_every_declared_route_is_present_and_superuser_protected(router_harness) -> None:
+def test_every_declared_route_has_the_expected_authentication_boundary(router_harness) -> None:
     _app, router, _service, auth = router_harness
-    actual = {(method, route.path) for route in router.routes for method in route.methods}
+    routes = declared_api_routes(router)
+    actual = {(method, route.path) for route in routes for method in route.methods}
     assert actual == DECLARED
-    for route in router.routes:
-        if isinstance(route, APIRoute):
+    for route in routes:
+        if route.path.startswith("/api/"):
             assert auth in dependency_calls(route), route.path
+        else:
+            assert auth not in dependency_calls(route), route.path
 
 
 @pytest.mark.asyncio
-async def test_root_static_and_api_reject_unauthenticated_requests(router_harness) -> None:
+async def test_public_shell_loads_anonymously_while_api_rejects_unauthenticated_requests(router_harness) -> None:
     app, _router, _service, _auth = router_harness
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
-        for path in (
-            "/plugins/Akiyo.semantic_sticker/",
-            "/plugins/Akiyo.semantic_sticker/static/app.js",
-            "/plugins/Akiyo.semantic_sticker/api/stats",
-        ):
-            assert (await client.get(path)).status_code == 401
+        root = await client.get("/plugins/Akiyo.semantic_sticker/")
+        script = await client.get("/plugins/Akiyo.semantic_sticker/static/app.js")
+        stats = await client.get("/plugins/Akiyo.semantic_sticker/api/stats")
+
+    assert root.status_code == 200
+    assert script.status_code == 200
+    assert stats.status_code == 401
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("label", ["non-super", "inactive-super"])
-async def test_forbidden_users_receive_403(router_harness, label: str) -> None:
+async def test_forbidden_users_receive_403_only_from_protected_api(router_harness, label: str) -> None:
     app, _router, _service, auth = router_harness
 
     async def forbidden_user():
@@ -211,7 +227,11 @@ async def test_forbidden_users_receive_403(router_harness, label: str) -> None:
 
     app.dependency_overrides[auth] = forbidden_user
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
-        assert (await client.get("/plugins/Akiyo.semantic_sticker/")).status_code == 403
+        root = await client.get("/plugins/Akiyo.semantic_sticker/")
+        stats = await client.get("/plugins/Akiyo.semantic_sticker/api/stats")
+
+    assert root.status_code == 200
+    assert stats.status_code == 403
 
 
 @pytest.mark.asyncio
@@ -239,8 +259,8 @@ async def test_unauthenticated_upload_rejects_before_multipart_body_parsing(rout
     app, router, _service, _auth = router_harness
     upload_route = next(
         route
-        for route in router.routes
-        if isinstance(route, APIRoute) and route.path == "/api/stickers" and "POST" in route.methods
+        for route in declared_api_routes(router)
+        if route.path == "/api/stickers" and "POST" in route.methods
     )
 
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:

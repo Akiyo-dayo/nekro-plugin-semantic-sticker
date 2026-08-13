@@ -22,6 +22,16 @@ def readme_text() -> str:
     return path.read_text(encoding="utf-8")
 
 
+@pytest.fixture
+def project_docs() -> tuple[str, str, str]:
+    root = Path(__file__).resolve().parents[1]
+    return (
+        (root / "README.md").read_text(encoding="utf-8"),
+        (root / "source" / "nekro_plugin_semantic_sticker" / "README.md").read_text(encoding="utf-8"),
+        (root / "CHANGELOG.md").read_text(encoding="utf-8"),
+    )
+
+
 def test_file_input_has_visible_keyboard_focus_without_overriding_focus_visible(web_assets) -> None:
     html, style, _script = web_assets
     assert html.index('id="file-input"') < html.index('for="file-input"')
@@ -67,6 +77,17 @@ def test_token_compatibility_does_not_log_or_render_token(web_assets) -> None:
     _html, _style, script = web_assets
     assert "console." not in script
     assert not re.search(r"(?:textContent|setStatus|createNode)\s*\([^\n]*token", script, re.I)
+
+
+def test_authentication_failures_have_distinct_safe_ui_transitions(web_assets) -> None:
+    html, _style, script = web_assets
+    assert 'href="/#/login"' in html
+    assert "请先登录 NekroAgent 后再访问此控制台" in script
+    assert "当前账户不是超级管理员，无权访问此控制台" in script
+    assert 'sessionStorage.removeItem(SESSION_TOKEN_KEY)' in script
+    assert 'localStorage.removeItem' not in script
+    assert 'location.replace' not in script and 'location.assign' not in script
+    assert "window.location =" not in script
 
 
 def test_all_visible_webui_copy_is_simplified_chinese(web_assets) -> None:
@@ -142,7 +163,8 @@ def test_http_errors_use_chinese_status_messages_without_backend_body(web_assets
     assert "HTTP_STATUS_MESSAGES" in script
     for expected in (
         "请求参数不正确",
-        "登录状态已失效或无权执行此操作",
+        "登录状态已失效",
+        "超级管理员权限",
         "请求的资源不存在",
         "服务器处理失败，请稍后重试",
         "服务暂时不可用，请稍后重试",
@@ -200,3 +222,29 @@ def test_chinese_readme_covers_operations_configuration_and_rollback(readme_text
     assert re.search(r"\b0\b.*关闭冷却", readme_text)
     assert re.search(r"\b20\b.*默认", readme_text)
     assert re.search(r"\b60\b.*60 秒", readme_text)
+
+
+def test_documentation_explains_bare_console_authentication_contract(project_docs) -> None:
+    public_readme, detailed_readme, changelog = project_docs
+
+    for document in (public_readme, detailed_readme):
+        for expected in (
+            "auth-storage",
+            "scheme、host、port",
+            "/plugins/Akiyo.semantic_sticker/",
+            "?token=",
+            "地址栏",
+            "静态外壳",
+            "/api/*",
+            "401",
+            "403",
+            "超级管理员",
+        ):
+            assert expected in document
+        assert "同源" in document
+        assert "前往 NA 登录" in document
+
+    assert "## 1.2.2（2026-08-13）" in changelog
+    assert "裸地址" in changelog
+    assert "auth-storage" in changelog
+    assert "/api/*" in changelog

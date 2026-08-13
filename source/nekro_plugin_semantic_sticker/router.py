@@ -136,7 +136,8 @@ def build_router(
     web_root: Path | None = None,
 ) -> APIRouter:
     root = Path(web_root or _web_root()).resolve()
-    router = APIRouter(dependencies=[Depends(_promote_query_token), Depends(auth_dependency)])
+    router = APIRouter(dependencies=[Depends(_promote_query_token)])
+    api_router = APIRouter(prefix="/api", dependencies=[Depends(auth_dependency)])
 
     @router.get("/", response_class=HTMLResponse)
     async def index_page() -> HTMLResponse:
@@ -163,7 +164,7 @@ def build_router(
             raise HTTPException(status_code=404, detail="Static asset not found")
         return FileResponse(target, media_type=allowed[path])
 
-    @router.post("/api/stickers", status_code=status.HTTP_202_ACCEPTED)
+    @api_router.post("/stickers", status_code=status.HTTP_202_ACCEPTED)
     async def upload_stickers(
         request: Request,
         current_user: Any = Depends(auth_dependency),
@@ -193,7 +194,7 @@ def build_router(
                     outcomes.append({"ok": False, "filename": filename, "error": "Upload failed"})
         return JSONResponse(status_code=202, content=outcomes)
 
-    @router.get("/api/stickers")
+    @api_router.get("/stickers")
     async def list_stickers(
         category: str | None = None,
         tags: str | None = None,
@@ -216,21 +217,21 @@ def build_router(
         )
         return await runtime_provider().list_stickers(filters)
 
-    @router.post("/api/stickers/batch-delete")
+    @api_router.post("/stickers/batch-delete")
     async def batch_delete(
         request: BatchDeleteRequest,
         current_user: Any = Depends(auth_dependency),
     ):
         return await runtime_provider().batch_delete(request.sticker_ids, actor=_actor(current_user))
 
-    @router.post("/api/reindex")
+    @api_router.post("/reindex")
     async def full_reindex(current_user: Any = Depends(auth_dependency)):
         return await runtime_provider().full_reindex(actor=_actor(current_user))
 
-    @router.get("/api/stats")
+    @api_router.get("/stats")
     async def stats_view():
         return await runtime_provider().stats()
-    @router.get("/api/stickers/{sticker_id}")
+    @api_router.get("/stickers/{sticker_id}")
     async def sticker_detail(sticker_id: str, view: str = "metadata"):
         try:
             record = await runtime_provider().get_sticker(sticker_id)
@@ -248,7 +249,7 @@ def build_router(
             raise HTTPException(status_code=400, detail="view must be metadata, thumbnail, or content")
         return FileResponse(target, media_type=media_type)
 
-    @router.patch("/api/stickers/{sticker_id}")
+    @api_router.patch("/stickers/{sticker_id}")
     async def patch_sticker(
         sticker_id: str,
         request: MetadataPatchRequest,
@@ -267,7 +268,7 @@ def build_router(
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
 
-    @router.delete("/api/stickers/{sticker_id}", status_code=status.HTTP_204_NO_CONTENT)
+    @api_router.delete("/stickers/{sticker_id}", status_code=status.HTTP_204_NO_CONTENT)
     async def delete_sticker(
         sticker_id: str,
         current_user: Any = Depends(auth_dependency),
@@ -280,7 +281,7 @@ def build_router(
             raise _service_error(error) from error
         return Response(status_code=204)
 
-    @router.post("/api/stickers/{sticker_id}/reanalyze")
+    @api_router.post("/stickers/{sticker_id}/reanalyze")
     async def reanalyze_sticker(
         sticker_id: str,
         current_user: Any = Depends(auth_dependency),
@@ -292,7 +293,7 @@ def build_router(
         except (StickerBusyError, StickerPolicyError) as error:
             raise _service_error(error) from error
 
-    @router.post("/api/stickers/{sticker_id}/reindex")
+    @api_router.post("/stickers/{sticker_id}/reindex")
     async def reindex_sticker(
         sticker_id: str,
         current_user: Any = Depends(auth_dependency),
@@ -304,6 +305,7 @@ def build_router(
         except (StickerBusyError, StickerPolicyError) as error:
             raise _service_error(error) from error
 
+    router.include_router(api_router)
     return router
 
 

@@ -3,7 +3,7 @@
 面向 NekroAgent 的实例级语义表情包库。插件提供网页上传与管理、视觉分析、语义检索、Agent 按需保存、用户主动保存，以及 Bot 被戳时直接发送表情包等能力。
 
 - 插件 ID：`Akiyo.semantic_sticker`
-- 当前版本：`1.2.1`
+- 当前版本：`1.2.2`
 - 源码目录：`source/nekro_plugin_semantic_sticker`
 - 详细操作手册：[插件用户与管理员手册](source/nekro_plugin_semantic_sticker/README.md)
 
@@ -74,11 +74,17 @@
 
 ## 管理控制台与上传
 
-登录 NekroAgent 管理后台后访问：
+先在 NekroAgent WebUI 登录超级管理员账户，然后可直接输入裸地址：
 
 `/plugins/Akiyo.semantic_sticker/`
 
-只有 NekroAgent 超级管理员可以执行 Web 管理操作。如果通过 nginx 等反向代理访问，`client_max_body_size` 必须不低于实际上传限制；否则请求会在到达插件之前以 HTTP 413 被拒绝。例如：
+插件前端会读取同源 `localStorage["auth-storage"].state.token` 中的 NA 登录 Token。这里的“同源”要求插件页面与 NA WebUI 的 `scheme、host、port` 全部相同；跨协议、跨域名或跨端口时，浏览器不允许插件读取该登录状态。
+
+已授权的 NUP 集成仍可使用 `?token=`；它的优先级高于插件 `sessionStorage` 和 NA `auth-storage`，页面启动后只会从地址栏清除 `token` 参数，并保留其他查询参数与 Hash。不同源部署无法读取 NA 本地存储，应继续使用受信任的 `?token=` 集成，或将 WebUI 与插件页面调整为同源。
+
+控制台的 HTML/CSS/JavaScript 静态外壳可匿名加载，但不包含表情包、统计或配置等业务数据；所有 `/api/*` 读写、预览和管理接口仍由服务端要求 NA 超级管理员。HTTP 401 表示未登录或 Token 失效，页面会显示“前往 NA 登录”；HTTP 403 表示当前账户不是超级管理员，不会清除 NA 登录状态。
+
+如果通过 nginx 等反向代理访问，`client_max_body_size` 必须不低于实际上传限制；否则请求会在到达插件之前以 HTTP 413 被拒绝。例如：
 
 ```nginx
 client_max_body_size 50m;

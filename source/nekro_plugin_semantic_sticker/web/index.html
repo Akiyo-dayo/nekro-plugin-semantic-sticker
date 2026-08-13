@@ -24,7 +24,15 @@
   </header>
 
   <main class="app-shell">
-    <section class="workspace" aria-label="表情包管理工作区">
+    <section id="access-gate" class="access-gate" aria-labelledby="access-title">
+      <span class="access-mark" aria-hidden="true">⌁</span>
+      <p class="section-kicker">访问控制</p>
+      <h2 id="access-title">正在验证访问权限</h2>
+      <p id="access-message" aria-live="polite">正在读取同源 NekroAgent 登录状态…</p>
+      <a id="login-link" class="button primary" href="/#/login" hidden>前往 NA 登录</a>
+    </section>
+
+    <section id="workspace" class="workspace" aria-label="表情包管理工作区" hidden>
       <section class="stats-strip" aria-label="库统计">
         <article class="stat-card">
           <span>总记录</span><strong id="stats-total">—</strong><small>未删除记录</small>
@@ -83,7 +91,7 @@
       </section>
     </section>
 
-    <aside id="metadata-panel" class="metadata-panel" role="dialog" aria-modal="false" aria-labelledby="metadata-title" tabindex="-1">
+    <aside id="metadata-panel" class="metadata-panel" role="dialog" aria-modal="false" aria-labelledby="metadata-title" tabindex="-1" hidden>
       <div class="panel-empty" id="metadata-empty">
         <span class="empty-glyph" aria-hidden="true">⌁</span>
         <h2>表情包详情</h2>
