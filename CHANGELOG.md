@@ -1,5 +1,13 @@
 # 更新日志
 
+## 1.2.3（2026-08-13）
+
+- 修复：将真实插件包直接发布在仓库根目录；NekroAgent 插件市场克隆整个仓库后，
+  可直接加载根 `__init__.py`、同级模块与 `web/` 静态资源。
+- 结构：移除 `source/nekro_plugin_semantic_sticker/` 嵌套层，不保留转发包装或重复源码。
+- 文档：详细用户与管理员手册移至根目录 `USER_GUIDE.md`。
+- 测试：新增市场目录形态的独立进程导入回归测试，防止发布结构再次退化。
+
 ## 1.2.2（2026-08-13）
 
 - 修复：已在同源 NekroAgent WebUI 登录的超级管理员，现在可直接输入 `/plugins/Akiyo.semantic_sticker/` 裸地址，插件会复用 `auth-storage` 中的 NA 登录 Token。

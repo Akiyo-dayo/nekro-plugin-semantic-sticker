@@ -8,7 +8,7 @@ import pytest
 
 @pytest.fixture
 def web_assets() -> tuple[str, str, str]:
-    root = Path(__file__).resolve().parents[1] / "source" / "nekro_plugin_semantic_sticker" / "web"
+    root = Path(__file__).resolve().parents[1] / "web"
     return (
         (root / "index.html").read_text(encoding="utf-8"),
         (root / "style.css").read_text(encoding="utf-8"),
@@ -18,7 +18,7 @@ def web_assets() -> tuple[str, str, str]:
 
 @pytest.fixture
 def readme_text() -> str:
-    path = Path(__file__).resolve().parents[1] / "source" / "nekro_plugin_semantic_sticker" / "README.md"
+    path = Path(__file__).resolve().parents[1] / "USER_GUIDE.md"
     return path.read_text(encoding="utf-8")
 
 
@@ -27,7 +27,7 @@ def project_docs() -> tuple[str, str, str]:
     root = Path(__file__).resolve().parents[1]
     return (
         (root / "README.md").read_text(encoding="utf-8"),
-        (root / "source" / "nekro_plugin_semantic_sticker" / "README.md").read_text(encoding="utf-8"),
+        (root / "USER_GUIDE.md").read_text(encoding="utf-8"),
         (root / "CHANGELOG.md").read_text(encoding="utf-8"),
     )
 

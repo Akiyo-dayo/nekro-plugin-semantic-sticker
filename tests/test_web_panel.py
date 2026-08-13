@@ -8,7 +8,7 @@ import pytest
 
 @pytest.fixture
 def web_files() -> tuple[Path, Path, Path]:
-    root = Path(__file__).resolve().parents[1] / "source" / "nekro_plugin_semantic_sticker" / "web"
+    root = Path(__file__).resolve().parents[1] / "web"
     return root / "index.html", root / "style.css", root / "app.js"
 
 

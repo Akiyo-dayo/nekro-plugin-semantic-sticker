@@ -102,7 +102,7 @@ async def test_mounted_message_callback_only_remembers_and_never_uploads(tmp_pat
 
 
 def test_runtime_sources_never_import_or_call_main_agent_request_paths() -> None:
-    source_root = Path(__file__).resolve().parents[1] / "source" / "nekro_plugin_semantic_sticker"
+    source_root = Path(__file__).resolve().parents[1]
     forbidden_names = {"send_agent_request", "reserve_main_agent", "reserve_main_agent_attempt"}
     for path in source_root.glob("*.py"):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))

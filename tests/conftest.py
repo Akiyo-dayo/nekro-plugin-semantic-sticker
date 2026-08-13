@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import importlib.util
 import inspect
 import sys
 import types
@@ -12,9 +13,8 @@ from pydantic import BaseModel
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SOURCE_ROOT = PROJECT_ROOT / "source"
-if str(SOURCE_ROOT) not in sys.path:
-    sys.path.insert(0, str(SOURCE_ROOT))
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 sys.dont_write_bytecode = True
 
@@ -277,3 +277,22 @@ def _install_nonebot_stubs() -> None:
 
 _install_nekro_agent_stubs()
 _install_nonebot_stubs()
+
+
+def _load_repository_root_package() -> None:
+    if "nekro_plugin_semantic_sticker" in sys.modules:
+        return
+    entrypoint = PROJECT_ROOT / "__init__.py"
+    spec = importlib.util.spec_from_file_location(
+        "nekro_plugin_semantic_sticker",
+        entrypoint,
+        submodule_search_locations=[str(PROJECT_ROOT)],
+    )
+    if spec is None or spec.loader is None:
+        raise RuntimeError("unable to create Semantic Sticker package spec")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["nekro_plugin_semantic_sticker"] = module
+    spec.loader.exec_module(module)
+
+
+_load_repository_root_package()

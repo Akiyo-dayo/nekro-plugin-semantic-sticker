@@ -200,7 +200,7 @@ def test_physical_channel_cooldown_validates_direct_assignment() -> None:
 
 
 def test_agent_tool_and_poke_direct_send_share_the_configured_cooldown() -> None:
-    source_root = Path(__file__).resolve().parents[1] / "source" / "nekro_plugin_semantic_sticker"
+    source_root = Path(__file__).resolve().parents[1]
     agent_tools = (source_root / "agent_tools.py").read_text(encoding="utf-8")
     poke_handler = (source_root / "poke_handler.py").read_text(encoding="utf-8")
 
@@ -227,12 +227,21 @@ def test_package_import_is_inert_and_registers_config(monkeypatch: pytest.Monkey
         sys.modules.pop(module_name)
 
     try:
-        package = importlib.import_module("nekro_plugin_semantic_sticker")
+        repository_root = Path(__file__).resolve().parents[1]
+        spec = importlib.util.spec_from_file_location(
+            "nekro_plugin_semantic_sticker",
+            repository_root / "__init__.py",
+            submodule_search_locations=[str(repository_root)],
+        )
+        assert spec is not None and spec.loader is not None
+        package = importlib.util.module_from_spec(spec)
+        sys.modules["nekro_plugin_semantic_sticker"] = package
+        spec.loader.exec_module(package)
 
         assert package.plugin.key == "Akiyo.semantic_sticker"
         assert package.plugin.author == "Akiyo"
         assert package.plugin.module_name == "semantic_sticker"
-        assert package.plugin.version == "1.2.2"
+        assert package.plugin.version == "1.2.3"
         assert package.plugin.support_adapter == ["onebot_v11"]
         assert package.plugin.mounted_config_types == [package.SemanticStickerConfig]
         assert package.config.__class__.__name__ == "SemanticStickerConfig"

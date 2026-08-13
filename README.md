@@ -3,9 +3,9 @@
 面向 NekroAgent 的实例级语义表情包库。插件提供网页上传与管理、视觉分析、语义检索、Agent 按需保存、用户主动保存，以及 Bot 被戳时直接发送表情包等能力。
 
 - 插件 ID：`Akiyo.semantic_sticker`
-- 当前版本：`1.2.2`
-- 源码目录：`source/nekro_plugin_semantic_sticker`
-- 详细操作手册：[插件用户与管理员手册](source/nekro_plugin_semantic_sticker/README.md)
+- 当前版本：`1.2.3`
+- 插件目录：仓库根目录
+- 详细操作手册：[插件用户与管理员手册](USER_GUIDE.md)
 
 ## 功能
 
@@ -49,8 +49,16 @@
 
 ## 安装
 
-1. 下载或克隆本仓库。
-2. 将 `source/nekro_plugin_semantic_sticker` 完整复制到目标 NekroAgent 的插件包目录。
+### 插件市场（推荐）
+
+在 NekroAgent 插件市场选择【语义表情包】并安装。v1.2.3 起仓库根目录就是完整插件目录，
+市场克隆整个仓库后可直接加载根 `__init__.py`、同级模块与 `web/` 静态资源，不再经过
+`source/` 嵌套目录或转发入口。
+
+### 手动安装
+
+1. 下载或克隆本仓库，并把整个仓库目录命名为 `nekro_plugin_semantic_sticker`。
+2. 将该完整目录放入目标 NekroAgent 的插件包目录。
 3. 在 NekroAgent 插件管理中启用 `Akiyo.semantic_sticker`。
 4. 配置分析模型组、Embedding 模型组，并确认 `VECTOR_DIMENSION` 与模型输出一致。
 5. 启用或更新后，对目标 NekroAgent 执行一次完整重启，再检查插件加载日志与管理页面。
@@ -70,7 +78,7 @@
 | `SEMANTIC_SCORE_THRESHOLD` | 语义候选最低相似度 |
 | `PHYSICAL_CHANNEL_COOLDOWN_SECONDS` | 同一物理频道发送冷却时间 |
 
-其余配置项和管理流程见[详细手册](source/nekro_plugin_semantic_sticker/README.md)。
+其余配置项和管理流程见[详细手册](USER_GUIDE.md)。
 
 ## 管理控制台与上传
 
