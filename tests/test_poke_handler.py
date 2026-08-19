@@ -263,6 +263,6 @@ def test_plugin_version_and_runtime_import_order_include_poke_handler() -> None:
     package = importlib.import_module("nekro_plugin_semantic_sticker")
     source = inspect.getsource(package)
 
-    assert plugin.version == "1.2.4"
+    assert plugin.version == "1.2.5"
     assert source.index('agent_tools = import_module') < source.index('poke_handler = import_module')
     assert package.poke_handler is load_poke_handler()

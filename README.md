@@ -3,7 +3,7 @@
 面向 NekroAgent 的实例级语义表情包库。插件提供网页上传与管理、视觉分析、语义检索、Agent 按需保存、用户主动保存，以及 Bot 被戳时直接发送表情包等能力。
 
 - 插件 ID：`Akiyo.semantic_sticker`
-- 当前版本：`1.2.4`
+- 当前版本：`1.2.5`
 - 插件目录：仓库根目录
 - 详细操作手册：[插件用户与管理员手册](USER_GUIDE.md)
 
@@ -71,7 +71,7 @@
 | --- | --- |
 | `ANALYSIS_MODEL_GROUP` | 视觉分析所用聊天模型组 |
 | `EMBEDDING_MODEL_GROUP` | 语义检索所用 Embedding 模型组 |
-| `VECTOR_DIMENSION` | 必须与 Embedding 输出长度一致，默认 1536 |
+| `VECTOR_DIMENSION` | 必须与 Embedding 输出长度一致，默认 1024 |
 | `MAX_UPLOAD_BYTES` | 单个图片允许的最大字节数，默认 10 MiB |
 | `AUTO_COLLECT_ENABLED` | 是否允许 Agent 自主收集已确认的表情包 |
 | `STRICT_EMOTION_COLLECT` | 是否拒绝截图、照片和无法确认的普通图片 |

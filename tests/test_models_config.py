@@ -145,7 +145,7 @@ def test_semantic_sticker_config_has_exact_fields_and_defaults() -> None:
             "neutral reaction", "other",
         ],
         "ANALYSIS_CONCURRENCY": 1, "EMBEDDING_MODEL_GROUP": "text-embedding",
-        "VECTOR_DIMENSION": 1536, "SEMANTIC_SCORE_THRESHOLD": 0.72,
+        "VECTOR_DIMENSION": 1024, "SEMANTIC_SCORE_THRESHOLD": 0.72,
         "MAX_UPLOAD_BYTES": 10_485_760, "MAX_IMAGE_PIXELS": 40_000_000,
         "MAX_WIDTH": 8192, "MAX_HEIGHT": 8192, "MAX_ANIMATION_FRAMES": 300,
         "RECENT_SELECTION_WINDOW": 10, "PHYSICAL_CHANNEL_COOLDOWN_SECONDS": 20,
@@ -241,7 +241,7 @@ def test_package_import_is_inert_and_registers_config(monkeypatch: pytest.Monkey
         assert package.plugin.key == "Akiyo.semantic_sticker"
         assert package.plugin.author == "Akiyo"
         assert package.plugin.module_name == "semantic_sticker"
-        assert package.plugin.version == "1.2.4"
+        assert package.plugin.version == "1.2.5"
         assert package.plugin.support_adapter == ["onebot_v11"]
         assert package.plugin.mounted_config_types == [package.SemanticStickerConfig]
         assert package.config.__class__.__name__ == "SemanticStickerConfig"

@@ -69,7 +69,7 @@ class SemanticStickerConfig(ConfigBase):
         json_schema_extra={"ref_model_groups": True, "required": True, "model_type": "embedding"},
     )
     VECTOR_DIMENSION: int = Field(
-        default=1536,
+        default=1024,
         title="向量维度",
         description="嵌入模型输出的向量维度，必须与所选嵌入模型一致。",
     )

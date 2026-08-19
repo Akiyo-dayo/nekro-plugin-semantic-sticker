@@ -244,7 +244,7 @@ def test_documentation_explains_bare_console_authentication_contract(project_doc
         assert "同源" in document
         assert "前往 NA 登录" in document
 
-    assert "## 1.2.4（2026-08-19）" in changelog
+    assert "## 1.2.5（2026-08-19）" in changelog
     assert "裸地址" in changelog
     assert "auth-storage" in changelog
     assert "/api/*" in changelog
