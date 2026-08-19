@@ -74,7 +74,7 @@ class SemanticStickerConfig(ConfigBase):
         description="嵌入模型输出的向量维度，必须与所选嵌入模型一致。",
     )
     SEMANTIC_SCORE_THRESHOLD: float = Field(
-        default=0.72,
+        default=0.5,
         title="语义匹配阈值",
         description="发送表情包时允许采用候选结果的最低语义相似度。",
     )
