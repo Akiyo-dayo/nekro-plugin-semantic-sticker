@@ -159,15 +159,42 @@ def web_root(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def router_harness(tmp_path: Path, web_root: Path, monkeypatch):
-    from nekro_agent.services.user.deps import get_current_super_user
+    from nekro_agent.services.user.deps import get_current_active_user
     from nekro_plugin_semantic_sticker.router import build_router
 
     install_os_env_stub(monkeypatch, tmp_path / "data")
     service = FakeService(record(tmp_path))
-    router = build_router(lambda: service, auth_dependency=get_current_super_user, web_root=web_root)
+    router = build_router(lambda: service, web_root=web_root)
     app = FastAPI()
     app.include_router(router, prefix="/plugins/Akiyo.semantic_sticker")
-    return app, router, service, get_current_super_user
+    return app, router, service, get_current_active_user
+
+
+def test_default_router_uses_active_user_authentication(router_harness) -> None:
+    _app, router, _service, auth = router_harness
+    from nekro_agent.services.user.deps import get_current_active_user
+
+    assert auth is get_current_active_user
+    for route in declared_api_routes(router):
+        if route.path.startswith("/api/"):
+            assert auth in dependency_calls(route), route.path
+
+
+@pytest.mark.asyncio
+async def test_active_non_superuser_can_use_full_backend(router_harness) -> None:
+    app, _router, service, auth = router_harness
+
+    async def active_user():
+        return SimpleNamespace(username="ordinary-user", is_active=True, perm_level=0)
+
+    app.dependency_overrides[auth] = active_user
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        stats = await client.get("/plugins/Akiyo.semantic_sticker/api/stats")
+        reindex = await client.post("/plugins/Akiyo.semantic_sticker/api/reindex")
+
+    assert stats.status_code == 200
+    assert reindex.status_code == 200
+    assert ("full_reindex", "ordinary-user") in service.calls
 
 
 def declared_api_routes(router) -> list[APIRoute]:

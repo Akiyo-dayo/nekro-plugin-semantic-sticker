@@ -65,16 +65,16 @@ def test_token_priority_reuses_same_origin_na_login_and_cleans_only_token_from_u
     assert 'headers.set("Authorization", "Bearer " + accessToken)' in script
 
 
-def test_access_states_distinguish_login_from_missing_superuser_permission(web_files) -> None:
+def test_access_states_require_login_without_superuser_gate(web_files) -> None:
     html, style, script = read_files(web_files)
     assert 'id="login-link"' in html and 'href="/#/login"' in html
     assert 'id="workspace"' in html and "hidden" in html.split('id="workspace"', 1)[1].split(">", 1)[0]
     assert 'id="metadata-panel"' in html and "hidden" in html.split('id="metadata-panel"', 1)[1].split(">", 1)[0]
     assert "[hidden]" in style
     assert 'showAccessState("unauthenticated")' in script
-    assert 'showAccessState("forbidden")' in script
+    assert 'showAccessState("forbidden")' not in script
     assert "请先登录 NekroAgent 后再访问此控制台" in script
-    assert "当前账户不是超级管理员，无权访问此控制台" in script
+    assert "当前账户不是超级管理员，无权访问此控制台" not in script
     assert "前往 NA 登录" in html
 
 

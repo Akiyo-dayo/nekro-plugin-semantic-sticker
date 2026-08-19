@@ -206,11 +206,15 @@ def _install_nekro_agent_stubs() -> None:
     user = types.ModuleType("nekro_agent.services.user")
     deps = types.ModuleType("nekro_agent.services.user.deps")
 
-    async def get_current_super_user():
+    async def get_current_active_user():
         from fastapi import HTTPException
 
         raise HTTPException(status_code=401, detail="Not authenticated")
 
+    async def get_current_super_user():
+        return await get_current_active_user()
+
+    deps.get_current_active_user = get_current_active_user
     deps.get_current_super_user = get_current_super_user
     services.user = user
     user.deps = deps

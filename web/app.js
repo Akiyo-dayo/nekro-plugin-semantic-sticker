@@ -45,7 +45,7 @@ const SAFETY_LABELS = {
 const HTTP_STATUS_MESSAGES = {
   400: "请求参数不正确，请检查后重试。",
   401: "登录状态已失效，请重新登录 NekroAgent 后重试。",
-  403: "当前账户缺少超级管理员权限，无法执行此操作。",
+  403: "当前登录账户无法执行此请求，请稍后重试。",
   404: "请求的资源不存在。",
   409: "当前数据状态已变化，请刷新后重试。",
   413: "上传请求超过服务器限制，请分批上传，或调大 nginx client_max_body_size 后重试。",
@@ -144,10 +144,7 @@ async function api(path, options = {}, authOptions = {}) {
     showAccessState("unauthenticated");
     throw new HttpError(response.status);
   }
-  if (response.status === 403) {
-    showAccessState("forbidden");
-    throw new HttpError(response.status);
-  }
+  if (response.status === 403) throw new HttpError(response.status);
   if (!response.ok) throw new HttpError(response.status);
   return response;
 }
@@ -241,12 +238,6 @@ function showWorkspace() {
 function showAccessState(kind) {
   setManagementVisibility(false);
   elements.accessGate.hidden = false;
-  if (kind === "forbidden") {
-    elements.accessTitle.textContent = "需要超级管理员权限";
-    elements.accessMessage.textContent = "当前账户不是超级管理员，无权访问此控制台。";
-    elements.loginLink.hidden = true;
-    return;
-  }
   elements.accessTitle.textContent = "请先登录 NekroAgent";
   elements.accessMessage.textContent = "请先登录 NekroAgent 后再访问此控制台。登录后返回并刷新当前裸地址即可。";
   elements.loginLink.hidden = false;
@@ -793,6 +784,6 @@ async function initialize() {
 }
 
 initialize().catch((error) => {
-  if (error instanceof HttpError && (error.status === 401 || error.status === 403)) return;
+  if (error instanceof HttpError && error.status === 401) return;
   setStatus(userErrorMessage(error, "控制台初始化失败，请刷新页面重试。"), "error");
 });

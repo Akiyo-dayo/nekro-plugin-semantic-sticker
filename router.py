@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from pydantic import BaseModel, ConfigDict
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
-from nekro_agent.services.user.deps import get_current_super_user
+from nekro_agent.services.user.deps import get_current_active_user
 
 from . import plugin
 from .agent_tools import get_service
@@ -132,7 +132,7 @@ def _not_found(error: StickerNotFoundError) -> HTTPException:
 def build_router(
     runtime_provider=get_service,
     *,
-    auth_dependency=get_current_super_user,
+    auth_dependency=get_current_active_user,
     web_root: Path | None = None,
 ) -> APIRouter:
     root = Path(web_root or _web_root()).resolve()

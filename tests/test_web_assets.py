@@ -83,7 +83,7 @@ def test_authentication_failures_have_distinct_safe_ui_transitions(web_assets) -
     html, _style, script = web_assets
     assert 'href="/#/login"' in html
     assert "请先登录 NekroAgent 后再访问此控制台" in script
-    assert "当前账户不是超级管理员，无权访问此控制台" in script
+    assert "当前账户不是超级管理员，无权访问此控制台" not in script
     assert 'sessionStorage.removeItem(SESSION_TOKEN_KEY)' in script
     assert 'localStorage.removeItem' not in script
     assert 'location.replace' not in script and 'location.assign' not in script
@@ -164,7 +164,7 @@ def test_http_errors_use_chinese_status_messages_without_backend_body(web_assets
     for expected in (
         "请求参数不正确",
         "登录状态已失效",
-        "超级管理员权限",
+        "当前登录账户无法执行此请求",
         "请求的资源不存在",
         "服务器处理失败，请稍后重试",
         "服务暂时不可用，请稍后重试",
@@ -238,13 +238,13 @@ def test_documentation_explains_bare_console_authentication_contract(project_doc
             "/api/*",
             "401",
             "403",
-            "超级管理员",
+            "普通登录用户",
         ):
             assert expected in document
         assert "同源" in document
         assert "前往 NA 登录" in document
 
-    assert "## 1.2.2（2026-08-13）" in changelog
+    assert "## 1.2.4（2026-08-19）" in changelog
     assert "裸地址" in changelog
     assert "auth-storage" in changelog
     assert "/api/*" in changelog

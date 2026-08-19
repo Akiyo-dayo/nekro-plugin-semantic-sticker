@@ -241,7 +241,7 @@ def test_package_import_is_inert_and_registers_config(monkeypatch: pytest.Monkey
         assert package.plugin.key == "Akiyo.semantic_sticker"
         assert package.plugin.author == "Akiyo"
         assert package.plugin.module_name == "semantic_sticker"
-        assert package.plugin.version == "1.2.3"
+        assert package.plugin.version == "1.2.4"
         assert package.plugin.support_adapter == ["onebot_v11"]
         assert package.plugin.mounted_config_types == [package.SemanticStickerConfig]
         assert package.config.__class__.__name__ == "SemanticStickerConfig"

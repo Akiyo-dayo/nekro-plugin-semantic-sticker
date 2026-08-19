@@ -40,7 +40,7 @@ def test_market_clone_root_exposes_semantic_sticker_plugin() -> None:
         spec.loader.exec_module(module)
 
         assert module.plugin.module_name == "semantic_sticker"
-        assert module.plugin.version == "1.2.3"
+        assert module.plugin.version == "1.2.4"
         assert Path(module.__file__).resolve() == entrypoint.resolve()
         assert module.router.__name__ == (
             "packages.nekro_plugin_semantic_sticker.router"
