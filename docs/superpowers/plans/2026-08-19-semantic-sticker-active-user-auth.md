@@ -20,12 +20,15 @@
 ## File Map
 
 - Modify: `router.py` — import and default to `get_current_active_user`; keep all API routes behind the dependency.
+- Modify: `__init__.py` — bump the plugin release version to `1.2.4`.
 - Modify: `web/app.js` — remove the obsolete superuser-specific normal error text and forbidden access gate.
 - Modify: `web/index.html` — keep the login gate but use ordinary NA-login wording if the gate copy is embedded in markup.
+- Modify: `tests/conftest.py` — expose a `get_current_active_user` test stub matching the NA dependency name.
 - Modify: `tests/test_auth_router.py` — verify active ordinary users pass all protected routes and unauthenticated requests remain rejected.
 - Modify: `tests/test_web_panel.py` and `tests/test_web_assets.py` — assert the frontend no longer advertises superuser-only access while retaining Token behavior and 401 handling.
 - Modify: `README.md` and `USER_GUIDE.md` — document active NA-user access and retain deployment/token details.
-- Modify: `CHANGELOG.md` — add a release entry for the permission correction.
+- Modify: `CHANGELOG.md` — add the `1.2.4` release entry for the permission correction.
+- Modify: `tests/test_market_package.py`, `tests/test_models_config.py`, `tests/test_poke_handler.py` — update package-version contract assertions to `1.2.4`.
 - Create: `docs/superpowers/specs/2026-08-19-semantic-sticker-active-user-auth-design.md` — approved design already recorded.
 
 ### Task 1: Add failing regression coverage for ordinary active users
@@ -99,6 +102,8 @@ Expected: failures show the current default dependency rejects the ordinary user
 - Produces: `build_router()` whose `/api/*` routes require an active NA login but not superuser level.
 
 - [ ] **Step 1: Replace the dependency import and default.**
+
+The release version is `1.2.4`; update `__init__.py` and the three package-version contract tests in Task 4 at the same time as the runtime dependency change.
 
 Change:
 
@@ -247,6 +252,6 @@ Expected: no whitespace errors; only the approved router/frontend/test/documenta
 - [ ] **Step 4: Commit the implementation.**
 
 ```powershell
-git add router.py web/app.js web/index.html tests/test_auth_router.py tests/test_web_panel.py tests/test_web_assets.py README.md USER_GUIDE.md CHANGELOG.md docs/superpowers/plans/2026-08-19-semantic-sticker-active-user-auth.md
+git add router.py web/app.js web/index.html __init__.py tests/conftest.py tests/test_auth_router.py tests/test_web_panel.py tests/test_web_assets.py tests/test_market_package.py tests/test_models_config.py tests/test_poke_handler.py README.md USER_GUIDE.md CHANGELOG.md docs/superpowers/plans/2026-08-19-semantic-sticker-active-user-auth.md
 git commit -m "fix: allow active NA users in sticker panel"
 ```
