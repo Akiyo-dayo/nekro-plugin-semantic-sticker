@@ -46,7 +46,7 @@ bot_poke_matcher = on_type(
     PokeNotifyEvent,
     rule=_is_bot_target,
     priority=1,
-    block=True,
+    block=False,
 )
 
 

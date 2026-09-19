@@ -65,7 +65,7 @@ class FakeDirectService:
 
 
 @pytest.mark.asyncio
-async def test_matcher_only_blocks_pokes_targeting_the_bot(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_matcher_only_handles_pokes_targeting_the_bot(monkeypatch: pytest.MonkeyPatch) -> None:
     poke_handler = load_poke_handler()
     service = FakeDirectService(result={
         "sent": False,
@@ -78,15 +78,15 @@ async def test_matcher_only_blocks_pokes_targeting_the_bot(monkeypatch: pytest.M
     matcher = poke_handler.bot_poke_matcher
     bot = SimpleNamespace(send=AsyncMock())
 
-    blocked = await matcher.run(bot=bot, event=poke_event())
-    not_blocked = await matcher.run(bot=bot, event=poke_event(target_id=99))
+    stop_tome = await matcher.run(bot=bot, event=poke_event())
+    stop_other = await matcher.run(bot=bot, event=poke_event(target_id=99))
 
     assert matcher.event_type is PokeNotifyEvent
     assert matcher.priority == 1
-    assert matcher.block is True
+    assert matcher.block is False
     assert list(inspect.signature(poke_handler._is_bot_target).parameters) == ["event"]
-    assert blocked is True
-    assert not_blocked is False
+    assert stop_tome is False
+    assert stop_other is False
     assert len(service.calls) == 1
 
 
@@ -103,9 +103,9 @@ async def test_group_poke_directly_sends_image_bytes_with_user_scoped_identity(
     bot = SimpleNamespace(send=AsyncMock())
     event = poke_event(group_id=100)
 
-    blocked = await poke_handler.bot_poke_matcher.run(bot=bot, event=event)
+    stopped = await poke_handler.bot_poke_matcher.run(bot=bot, event=event)
 
-    assert blocked is True
+    assert stopped is False
     call = service.calls[0]
     usage_context = call["usage_context"]
     assert usage_context.logical_chat_key == "onebot_v11-group_100-user_42"
@@ -207,7 +207,7 @@ async def test_delivery_failure_is_logged_and_stays_silent(
 
 
 @pytest.mark.asyncio
-async def test_real_delivery_exception_is_caught_and_matcher_still_blocks(
+async def test_real_delivery_exception_is_caught_and_matcher_still_completes(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
@@ -220,9 +220,9 @@ async def test_real_delivery_exception_is_caught_and_matcher_still_blocks(
     bot = SimpleNamespace(send=AsyncMock(side_effect=RuntimeError("onebot send failed")))
 
     with caplog.at_level(logging.ERROR):
-        blocked = await poke_handler.bot_poke_matcher.run(bot=bot, event=poke_event())
+        stopped = await poke_handler.bot_poke_matcher.run(bot=bot, event=poke_event())
 
-    assert blocked is True
+    assert stopped is False
     bot.send.assert_awaited_once()
     assert "处理 Bot 戳一戳表情回复失败" in caplog.text
 
@@ -263,6 +263,6 @@ def test_plugin_version_and_runtime_import_order_include_poke_handler() -> None:
     package = importlib.import_module("nekro_plugin_semantic_sticker")
     source = inspect.getsource(package)
 
-    assert plugin.version == "1.2.6"
+    assert plugin.version == "1.2.7"
     assert source.index('agent_tools = import_module') < source.index('poke_handler = import_module')
     assert package.poke_handler is load_poke_handler()

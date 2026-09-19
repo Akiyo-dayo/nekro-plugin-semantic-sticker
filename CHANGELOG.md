@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.2.7（2026-09-19）
+
+- 兼容：戳一戳回复 matcher 由 `block=True` 改为 `block=False`。此前插件在 `priority=1` 处阻断事件传播，导致 NekroAgent 核心 `on_notice(priority=99999)` 的戳一戳唤醒 LLM 机制完全失效，戳 Bot 只发表情包、不再触发 AI 对话；现在两者并行生效，戳一戳同时触发表情包回复和官方 LLM 对话。
+
 ## 1.2.6（2026-08-19）
 
 - 配置：将 `SEMANTIC_SCORE_THRESHOLD` 的默认值从 `0.72` 调整回 `0.5`，降低默认语义匹配门槛。

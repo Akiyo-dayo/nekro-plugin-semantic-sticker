@@ -205,7 +205,7 @@ def test_chinese_readme_covers_operations_configuration_and_rollback(readme_text
         "text_then_image",
         "auto",
         "Bot 被戳",
-        "不回退 LLM",
+        "戳一戳唤醒 LLM",
         "PHYSICAL_CHANNEL_COOLDOWN_SECONDS",
         "SEMANTIC_SCORE_THRESHOLD",
         "RECENT_SELECTION_WINDOW",
